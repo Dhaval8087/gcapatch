@@ -4,9 +4,11 @@ import '../../node_modules/rc-progress/assets/index.css';
 import { remote } from 'electron';
 import { Line } from 'rc-progress';
 import React, { Component } from 'react';
-
+import Path from 'path';
 import styles from './Home.css';
-
+import Axios from 'axios';
+import Fs from 'fs';
+import { rootPath } from 'electron-root-path';
 const startDefault = require('../assets/img/start-default.jpg');
 const startDisabled = require('../assets/img/start-disabled.jpg');
 export default class Home extends Component {
@@ -19,6 +21,12 @@ export default class Home extends Component {
       isDisabled: false
     }
   }
+  componentDidMount() {
+    // this.downloadImage().then(res=>{
+
+    //   console.log(res);
+    // })
+  }
   closeClick = () => {
     remote.getCurrentWindow().close();
   }
@@ -29,18 +37,18 @@ export default class Home extends Component {
         imgSrc: startDisabled,
         isDisabled: true
       })
-      const intervalId = setInterval(() => {
-        this.setState({ downloadPerc: this.state.downloadPerc + 10 })
-        if (this.state.downloadPerc === 100) {
-          clearInterval(intervalId);
-          this.setState({
-            imgSrc: startDefault,
-            isDisabled: false,
-            updatePerc: 0,
-            downloadPerc: 0
-          })
-        }
-      }, 500);
+      // const intervalId = setInterval(() => {
+      //   this.setState({ downloadPerc: this.state.downloadPerc + 10 })
+      //   if (this.state.downloadPerc === 100) {
+      //     clearInterval(intervalId);
+      //     this.setState({
+      //       imgSrc: startDefault,
+      //       isDisabled: false,
+      //       updatePerc: 0,
+      //       downloadPerc: 0
+      //     })
+      //   }
+      // }, 500);
     }
 
   }
