@@ -1,14 +1,14 @@
 // @flow
-import '../../node_modules/rc-progress/assets/index.css';
 
 import { remote } from 'electron';
 import { Line } from 'rc-progress';
 import React, { Component } from 'react';
-import Path from 'path';
+import '../../node_modules/rc-progress/assets/index.css';
+import config from '../config';
+import { downloadFile } from '../utils/downloadfile';
+import { readlocalFile, getupdatedFileList } from '../utils/readfile';
 import styles from './Home.css';
-import Axios from 'axios';
 import Fs from 'fs';
-import { rootPath } from 'electron-root-path';
 const startDefault = require('../assets/img/start-default.jpg');
 const startDisabled = require('../assets/img/start-disabled.jpg');
 export default class Home extends Component {
@@ -18,14 +18,32 @@ export default class Home extends Component {
       imgSrc: startDefault,
       updatePerc: 0,
       downloadPerc: 50,
-      isDisabled: false
+      isDisabled: false,
     }
   }
   componentDidMount() {
-    // this.downloadImage().then(res=>{
 
-    //   console.log(res);
-    // })
+    this.downloadTextFile().then((latestdata) => {
+      let fileList = getupdatedFileList(latestdata);
+      fileList.forEach(item => {
+        let fileObject = {
+          filename: item,
+        }
+        downloadFile(item);
+      })
+    });
+
+  }
+  downloadTextFile() {
+    let fileObject = {
+      foldername: 'DownloadFiles',
+      filename: 'gc-apatch_file_info.txt',
+    }
+    return new Promise((resolve, reject) => {
+      downloadFile(fileObject, async (file) => {
+        resolve(readlocalFile(file.path));
+      });
+    })
   }
   closeClick = () => {
     remote.getCurrentWindow().close();
@@ -63,7 +81,7 @@ export default class Home extends Component {
         </div>
 
         <div className={styles.iframe}>
-          <iframe src='https://ir.tools.investis.com/clients/(S(ci3fa5bsz3b2bvsbin54bnqn))/fi/tieto1/sm7/default.aspx?culture=en-US#' frameBorder="0"></iframe>
+          {/* <iframe src='https://ir.tools.investis.com/clients/(S(ci3fa5bsz3b2bvsbin54bnqn))/fi/tieto1/sm7/default.aspx?culture=en-US#' frameBorder="0"></iframe> */}
         </div>
         <div className={styles.downloadCaption}>
           <span>Downloading File </span>
@@ -77,7 +95,7 @@ export default class Home extends Component {
         <div className={styles.percentage}>
           <span>{this.state.downloadPerc}% </span>
         </div>
-      </div>
+      </div >
     );
   }
 }
