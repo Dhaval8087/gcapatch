@@ -16,6 +16,8 @@ export default class Home extends Component {
     super(props)
     this.state = {
       imgSrc: startDefault,
+      counter: 0,
+      totalCount: 0,
       updatePerc: 0,
       downloadPerc: 0,
       isDisabled: true,
@@ -24,16 +26,27 @@ export default class Home extends Component {
   }
   componentDidMount() {
 
-    this.downloadTextFile().then((latestdata) => {
+    this.downloadTextFile().then(async (latestdata) => {
       let fileList = getupdatedFileList(latestdata);
-      fileList.forEach(item => {
+      let fileFolderList = getupdatedFileFolderList(latestdata);
+      this.setState({ totalCount: (fileList.length + fileFolderList.length) });
+      debugger;
+      await fileList.reduce(async (promise, item) => {
         let fileObject = {
-          filename: item
+          filename: item,
+          foldername: 'DownloadFiles'
         }
-        downloadFile(fileObject);
-      });
-      this.setState({ downloadPerc: 4 });
-      this.downloadFolderFiles(latestdata);
+        await promise;
+        this.setState({ updatePerc: 0 });
+        await downloadFile(fileObject, () => {
+          const counter = this.state.counter + 1;
+          this.setState({ counter });
+          this.setState({ updatePerc: 100, downloadPerc: Math.ceil(this.state.counter / this.state.totalCount * 100), isDisabled: counter !== this.state.totalCount })
+        });
+        this.setState({ filename: item });
+      }, Promise.resolve());
+
+      this.downloadFolderFiles(fileFolderList);
     });
 
   }
@@ -48,20 +61,19 @@ export default class Home extends Component {
       });
     })
   }
-  async downloadFolderFiles(latestdata) {
-    let fileList = getupdatedFileFolderList(latestdata);
-    let counter = 0
+  async downloadFolderFiles(fileList) {
     await fileList.reduce(async (promise, item) => {
       let fileObject = {
         filename: item.filename,
         isfolderinclude: true,
-        foldername: `${item.foldername}`
+        foldername: `DownloadFiles/${item.foldername}`
       }
       await promise;
       this.setState({ updatePerc: 0 });
       await downloadFile(fileObject, () => {
-        counter++;
-        this.setState({ updatePerc: 100, downloadPerc: Math.ceil(counter / fileList.length * 100), isDisabled: counter !== fileList.length })
+        const counter = this.state.counter + 1;
+        this.setState({ counter });
+        this.setState({ updatePerc: 100, downloadPerc: Math.ceil(this.state.counter / this.state.totalCount * 100), isDisabled: counter !== this.state.totalCount })
       });
       this.setState({ filename: item.filename });
     }, Promise.resolve());

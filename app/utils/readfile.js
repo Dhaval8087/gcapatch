@@ -10,10 +10,11 @@ export function getupdatedFileList(latestFileData) {
   let path = Path.join(rootPath, 'app/utils', 'gc-apatch_file_info.txt');
   let localFileData = readlocalFile(path);
   latestFileData.files.forEach(item => {
+    debugger;
     let newdate = new Date(item.modifieddate);
     let getlatestrecord = localFileData.files.find(p => p.name === item.name);
     if (getlatestrecord) {
-      let olddate = new Date(localFileData.modifieddate);
+      let olddate = new Date(getlatestrecord.modifieddate);
       if (newdate > olddate) {
         updatedfiles.push(getlatestrecord.name);
       }
@@ -39,9 +40,9 @@ function processFileFolder(latestItem, localFileData, updatedfiles) {
 
   } else {
     latestItem.files.forEach(file => {
-      let oldfolder = localFileData.filter(p => p.name === latestItem.name);
+      let oldfolder = localFileData.find(p => p.name === latestItem.name);
       if (oldfolder) {
-        let oldItem = oldfolder[0].files.filter(q => q.name === file.name)[0];
+        let oldItem = oldfolder.files.find(q => q.name === file.name);
         let newdate = new Date(file.modifieddate);
         if (oldItem) {
           let olddate = new Date(oldItem.modifieddate);
