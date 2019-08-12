@@ -6,7 +6,7 @@ import React, { Component } from 'react';
 import '../../node_modules/rc-progress/assets/index.css';
 import config from '../config';
 import { downloadFile } from '../utils/downloadfile';
-import { readlocalFile, getupdatedFileList } from '../utils/readfile';
+import { readlocalFile, getupdatedFileList, getupdatedFileFolderList } from '../utils/readfile';
 import styles from './Home.css';
 import Fs from 'fs';
 const startDefault = require('../assets/img/start-default.jpg');
@@ -17,8 +17,9 @@ export default class Home extends Component {
     this.state = {
       imgSrc: startDefault,
       updatePerc: 0,
-      downloadPerc: 50,
-      isDisabled: false,
+      downloadPerc: 0,
+      isDisabled: true,
+      filename: ''
     }
   }
   componentDidMount() {
@@ -27,10 +28,12 @@ export default class Home extends Component {
       let fileList = getupdatedFileList(latestdata);
       fileList.forEach(item => {
         let fileObject = {
-          filename: item,
+          filename: item
         }
-        downloadFile(item);
-      })
+        downloadFile(fileObject);
+      });
+      this.setState({ downloadPerc: 4 });
+      this.downloadFolderFiles(latestdata);
     });
 
   }
@@ -45,32 +48,32 @@ export default class Home extends Component {
       });
     })
   }
+  async downloadFolderFiles(latestdata) {
+    let fileList = getupdatedFileFolderList(latestdata);
+    let counter = 0
+    await fileList.reduce(async (promise, item) => {
+      let fileObject = {
+        filename: item.filename,
+        isfolderinclude: true,
+        foldername: `${item.foldername}`
+      }
+      await promise;
+      this.setState({ updatePerc: 0 });
+      await downloadFile(fileObject, () => {
+        counter++;
+        this.setState({ updatePerc: 100, downloadPerc: Math.ceil(counter / fileList.length * 100), isDisabled: counter !== fileList.length })
+      });
+      this.setState({ filename: item.filename });
+    }, Promise.resolve());
+  }
   closeClick = () => {
     remote.getCurrentWindow().close();
   }
   onStart = () => {
-    if (this.state.isDisabled === false) {
-      //alert('hi');
-      this.setState({
-        imgSrc: startDisabled,
-        isDisabled: true
-      })
-      // const intervalId = setInterval(() => {
-      //   this.setState({ downloadPerc: this.state.downloadPerc + 10 })
-      //   if (this.state.downloadPerc === 100) {
-      //     clearInterval(intervalId);
-      //     this.setState({
-      //       imgSrc: startDefault,
-      //       isDisabled: false,
-      //       updatePerc: 0,
-      //       downloadPerc: 0
-      //     })
-      //   }
-      // }, 500);
-    }
 
   }
   render() {
+    console.log(this.state.updatePerc);
     return (
       <div>
         <div className={styles.closebtn} onClick={this.closeClick}>
@@ -84,7 +87,7 @@ export default class Home extends Component {
           {/* <iframe src='https://ir.tools.investis.com/clients/(S(ci3fa5bsz3b2bvsbin54bnqn))/fi/tieto1/sm7/default.aspx?culture=en-US#' frameBorder="0"></iframe> */}
         </div>
         <div className={styles.downloadCaption}>
-          <span>Downloading File </span>
+          <span>Downloading File : {this.state.filename}</span>
         </div>
         <div className={styles.prograss}>
           <Line percent={this.state.updatePerc} strokeWidth="3" strokeColor="#14409C" trailWidth="2" trailColor="#040404" />
