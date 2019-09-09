@@ -30,11 +30,11 @@ export default class Home extends Component {
       let fileList = getupdatedFileList(latestdata);
       let fileFolderList = getupdatedFileFolderList(latestdata);
       this.setState({ totalCount: (fileList.length + fileFolderList.length) });
-      debugger;
+
       await fileList.reduce(async (promise, item) => {
         let fileObject = {
           filename: item,
-          foldername: 'DownloadFiles'
+          // foldername: 'DownloadFiles'
         }
         await promise;
         this.setState({ updatePerc: 0 });
@@ -52,7 +52,7 @@ export default class Home extends Component {
   }
   downloadTextFile() {
     let fileObject = {
-      foldername: 'DownloadFiles',
+      //foldername: 'DownloadFiles',
       filename: 'gc-apatch_file_info.txt',
     }
     return new Promise((resolve, reject) => {
@@ -66,7 +66,7 @@ export default class Home extends Component {
       let fileObject = {
         filename: item.filename,
         isfolderinclude: true,
-        foldername: `DownloadFiles/${item.foldername}`
+        foldername: item.foldername
       }
       await promise;
       this.setState({ updatePerc: 0 });
